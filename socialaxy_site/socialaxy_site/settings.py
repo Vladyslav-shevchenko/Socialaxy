@@ -74,10 +74,12 @@ WSGI_APPLICATION = 'socialaxy_site.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'read_default_file': BASE_DIR + '/base.cfg',
-        },
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'socialaxy_data',
+        'USER': 'root',
+        'PASSWORD': 'root',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
