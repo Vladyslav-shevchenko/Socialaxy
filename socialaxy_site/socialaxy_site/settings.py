@@ -24,8 +24,6 @@ SECRET_KEY = '%u-n$m6d9cly2cq1a4m7w+iseoz%+%wp0a3#tnw&38z85477^g'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -36,6 +34,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'socialaxy_main_page',
+    'channels',
+    'socialaxy_chat',
+    'socialaxy_coming_soon_page',
 ]
 
 MIDDLEWARE = [
@@ -49,6 +50,21 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'socialaxy_site.urls'
+
+redis_host = os.environ.get('REDIS_HOST', 'localhost')
+
+# Channel layer definitions
+# http://channels.readthedocs.org/en/latest/deploying.html#setting-up-a-channel-backend
+CHANNEL_LAYERS = {
+    "default": {
+        # This example app uses the Redis channel layer implementation asgi_redis
+        "BACKEND": "asgi_redis.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(redis_host, 6379)],
+        },
+        "ROUTING": "socialaxy_site.routing.channel_routing",
+    },
+}
 
 TEMPLATES = [
     {
@@ -75,8 +91,12 @@ WSGI_APPLICATION = 'socialaxy_site.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'socialaxy_data.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'socialaxy_data',
+        'USER': 'shevchenko_vlad',
+        'PASSWORD': 'sv2143657',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -98,6 +118,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_REDIRECT_URL = "/"
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
@@ -111,12 +133,13 @@ USE_L10N = True
 
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# Allow all host headers
+ALLOWED_HOSTS = ['*']
 
-STATIC_ROOT = ''
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/dev/howto/static-files/
 
 STATIC_URL = '/static/'
-
-STATICFILES_DIRS = (
-    BASE_DIR + '/static',
-)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
