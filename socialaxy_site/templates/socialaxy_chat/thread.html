@@ -1,0 +1,117 @@
+{% extends 'socialaxy_chat/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Tread" %} {{ thread.name }}{% endblock title %}
+
+{% block content %}
+    <div class="jumbotron thread-jumbotron bg-white">
+
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-6 offset-xl-3 col-lg-8 offset-lg-2 col-md-10 offset-md-1">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h4 class="clearfix">
+                                {{ thread.name }}{% if interlocutor %}
+                                    <a href="{% url 'socialaxy_chat:call' interlocutor.username %}"
+                                       class="h2 float-right">☎</a>
+                                {% endif %}
+                            </h4>
+                        </div>
+                        <div id="chat-body" class="panel-body bg-faded p-2">
+                            <ul id="messages" class="chat">
+                                {% include "socialaxy_chat/message.html" %}
+                                {% for message in messages %}
+                                    {% include "socialaxy_chat/message.html" %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="panel-footer">
+                            <div class="input-group">
+                                <input id="btn-input" type="text" class="form-control input-sm"
+                                       placeholder="Type your message here..."/>
+                                <span class="input-group-btn">
+                                <button class="btn btn-warning btn-sm" id="btn-chat">
+                                    Send</button>
+                            </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block script %}
+<script>
+    var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    var socket = new WebSocket(protocol + '://' + window.location.host + '/ws/thread/' + {{ thread.id }});
+    var users = {% autoescape off %}{{ users }}{% endautoescape %};
+    var user = {{ user.pk }};
+    var $input = $('#btn-input');
+    var $chat = $('#chat-body');
+    var $message;
+
+    function sendMessage() {
+        socket.send(JSON.stringify({
+            text: $input.val()
+        }));
+        $input.val('');
+    }
+
+    $chat.scrollTop($chat.prop('scrollHeight'));
+
+    $('#btn-chat').click(sendMessage);
+    $input.keypress(function (e) {
+        if (e.which == 13) {
+            sendMessage();
+        }
+    });
+
+    socket.onopen = function open() {
+        console.log('WebSockets connection created.');
+    };
+
+    socket.onmessage = function message(event) {
+        var raw_data = JSON.parse(event.data);
+        var action = raw_data.payload.action;
+        var data = raw_data.payload.data;
+        var pk = raw_data.payload.pk;
+
+        // On message Update.
+        if (action == 'update') {
+            $message = $('#message-' + pk);
+            $message.find('.text').text(data.text);
+        }
+
+        // On message Insert.
+        if (action == 'create') {
+            $message = $('#message-').clone().toggleClass('left', data.user != user).toggleClass('right', data.user == user).removeClass('hidden-xs-up').attr('id', 'message-' + pk).appendTo('#messages');
+            $message.find('.text').text(data.text);
+            $message.find('.date').data('date', data.date).text('{% trans "Just now" %}');
+            if (users.hasOwnProperty(data.user)) {
+                // TODO [Mike] Need to think how to improve this.
+                $message.find('.profile-link').attr('href', '/user/' + users[data.user].username);
+                $message.find('.username').text(users[data.user].username);
+                $message.find('.avatar').attr('src', users[data.user].avatar);
+            }
+
+            // Confirm that message was read.
+            socket.send(JSON.stringify({
+                read: true,
+            }));
+        }
+
+        // On message Delete.
+        if (action == 'delete') {
+            $('#message-' + pk).remove();
+        }
+        $chat.scrollTop($chat.prop('scrollHeight'));
+    };
+
+    if (socket.readyState == WebSocket.OPEN) {
+        socket.onopen();
+    }
+</script>
+{% endblock script %}

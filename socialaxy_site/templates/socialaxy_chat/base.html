@@ -1,27 +1,92 @@
-<!DOCTYPE html>
-
-{% load staticfiles %}
-
-<html>
+{% load static from staticfiles %}
+{% load i18n %}
+<!doctype html>
+<html lang="en">
 <head>
-    <title>{% block title %}{% endblock %}</title>
-    <meta charset="UTF-8">
-	<link rel="stylesheet" href="{% static "css/style.css" %}" type="text/css" media="screen" />
-	<script src="{% static "js/jquery-1.12.2.min.js" %}" type="text/javascript"></script>
-	<script src="{% static "channels/js/websocketbridge.js" %}" type="text/javascript"></script>
-	{% block extra_head %}{% endblock %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="robots" content="none">
+    <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4QMOFBUIlPIK7gAAAdxJREFUWMPll8FqFEEQhr/+K6IxqAgBEQ+LoiCKkJMH8RFE8RkEjyJ4M3mBHHwYjSdvQkAQYS+LohcTDWpQoyjioukqDzuDu8asG9nZPqSgT1PM93dVd1cV7HZLozqa7DRwBbgInAVagKrPAbwGOsByEEvu3hmLQpPdNtkHk8UO14bJ5tHomwRAUg2++R/Q7dat6p/DU2DJSCkdDOIRcGbM6X4OnCfxJee8VYCZQdCqHPc2dOZ+AqdIrNYiUh0ad5+V9AbY0/DBz+5+RNLH7Ll3irNnJD2ZALy3X6mdvRcBqyKwAFyd4PU/lFKKiHhYpyBKPELZczKTXQMulxCgpLcqBa/skoC5ggLmksm6Dd77f9mm6ptQyLKAdwUFrAtoFxTQFrBUUMC94g9R3dEsFODPD5Zj2UrVZk3CXmbPJwbKMXAYWJ9ARfwBHCXYyNFXjkl8cvw40G0Q3nX8JKkH39KSKQmZ9oXH9wbgnUS64OFfPfw3s99j2qYJjyaK043s+ZwzCP/rXGCyNeDYGKDvgTvZ8+Iwp6k/4NdHgN+vOuZWXx3ZBFaAp8AycDd7frGjWcBkB4b09d9Mtmiy/ePOzRSAu2OyepT6DLwCngXxmOCBx5jGrO1sRjO7dzr+BVtAwsorwcB8AAAAAElFTkSuQmCC"
+          rel="icon"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'socialaxy_chat/style/bootstrap.min.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'socialaxy_chat/style/main.css' %}?v=2"/>
+    {% block css %}{% endblock css %}
+    <title>{% block title %}{% trans "Chat room" %}{% endblock title %}</title>
 </head>
 <body>
-	<header>
-		<h1>{% block header_text %}{% endblock %}</h1>
-		{% if user.is_authenticated %}
-			<a href="/accounts/logout/">Logout</a>
-		{% endif %}
-	</header>
-	<section>
-		{% block content %}
-		{% endblock %}
-	</section>
-	{% block extra_body %}{% endblock %}
+<svg class="hidden-xl-down">
+    <defs>
+        <symbol id="chat-icon" viewBox="0 0 14 14">
+            <path d="M7,0.935c-3.866,0-7,2.463-7,5.5c0,1.438,0.703,2.749,1.854,3.729   c-0.044,0.955-0.242,2.239-0.942,2.901c1.337,0,2.706-0.88,3.518-1.514c0.796,0.248,1.663,0.384,2.57,0.384c3.866,0,7-2.463,7-5.5   S10.866,0.935,7,0.935z"
+                  fill="#006DF0"/>
+        </symbol>
+    </defs>
+</svg>
+<nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbar"
+            aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <a class="navbar-brand" href="{% url 'socialaxy_chat:user_list' %}">{% trans "Chat" %}</a>
+
+    <div class="collapse navbar-collapse" id="navbar">
+        <ul class="navbar-nav mr-auto">
+            {% url 'socialaxy_chat:user_list' as user_list_url %}
+            <li class="nav-item {% if request.get_full_path == user_list_url %}active{% endif %}">
+                <a class="nav-link" href="{{ user_list_url }}">{% trans "Home" %} <span
+                        class="sr-only">({% trans "current" %})</span></a>
+            </li>
+        </ul>
+        <ul class="navbar-nav mr-right">
+            {% if user.is_authenticated %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
+                       aria-expanded="false">
+                        <svg class="icon">
+                            <use xlink:href="#chat-icon"/>
+                        </svg>
+                        {% if unread_threads %}
+                            <span class="badge badge-pill badge-danger">{{ unread_threads }}</span>{% endif %}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                        {% for thread in threads %}
+                            <a class="dropdown-item"
+                               href="{% url 'socialaxy_chat:thread' thread.0 %}">{{ thread.1 }}</a>
+                        {% endfor %}
+                    </div>
+                </li>
+                {% url 'socialaxy_chat:user' user.username as user_url %}
+                <li class="nav-item {% if request.get_full_path == user_url %}active{% endif %}">
+                    <a class="nav-link" href="{{ user_url }}">
+                        <img src="{{ user.profile.avatar.url }}" height="20" width="20" alt="avatar">
+                        {{ user.username }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'socialaxy_chat:logout' %}">{% trans "Log out" %}</a>
+                </li>
+            {% else %}
+                {% url 'socialaxy_chat:signup' as signup_url %}
+                <li class="nav-item {% if request.path == signup_url %}active{% endif %}">
+                    <a class="nav-link" href="{{ signup_url }}">{% trans "Sign up" %}</a>
+                </li>
+                {% url 'socialaxy_chat:login' as login_url %}
+                <li class="nav-item {% if request.path == login_url %}active{% endif %}">
+                    <a class="nav-link" href="{{ login_url }}">{% trans "Log in" %}</a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+<div class="container">
+    {% block content %}{% endblock content %}
+</div>
+<script type="text/javascript" src="{% static 'socialaxy_chat/script/jquery.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'socialaxy_chat/script/tether.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'socialaxy_chat/script/bootstrap.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'socialaxy_chat/script/bootstrap-editable.min.js' %}"></script>
+{% block script %}{% endblock script %}
 </body>
 </html>

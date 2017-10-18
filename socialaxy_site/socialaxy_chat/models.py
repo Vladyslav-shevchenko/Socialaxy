@@ -1,41 +1,92 @@
-import json
+import datetime
+
+from django.conf import settings
 from django.db import models
-from django.utils.six import python_2_unicode_compatible
-from channels import Group
-
-from .settings import MSG_TYPE_MESSAGE
+from django.core.cache import cache
+from channels.binding.websockets import WebsocketBinding
 
 
-@python_2_unicode_compatible
-class Room(models.Model):
-    """
-    A room for people to chat in.
-    """
+class Profile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, related_name='profile')
+    avatar = models.ImageField(
+        upload_to='avatars/',
+        default='avatars/no-avatar.png'
+    )
 
-    # Room title
-    title = models.CharField(max_length=255)
+    def last_seen(self):
+        return cache.get('seen_%s' % self.user.username)
 
-    # If only "staff" users are allowed (is_staff on django's User)
-    staff_only = models.BooleanField(default=False)
+    def online(self):
+        if self.last_seen():
+            now = datetime.datetime.now()
+            return now < self.last_seen() + datetime.timedelta(seconds=settings.USER_ONLINE_TIMEOUT)
+
+        return False
 
     def __str__(self):
-        return self.title
-
-    @property
-    def websocket_group(self):
-        """
-        Returns the Channels Group that sockets should subscribe to to get sent
-        messages as they are generated.
-        """
-        return Group("room-%s" % self.id)
-
-    def send_message(self, message, user, msg_type=MSG_TYPE_MESSAGE):
-        """
-        Called to send a message to the room on behalf of a user.
-        """
-        final_msg = {'room': str(self.id), 'message': message, 'username': user.username, 'msg_type': msg_type}
-
-        # Send out the message to everyone in the room
-        self.websocket_group.send(
-            {"text": json.dumps(final_msg)}
+        return u'%s' % (
+            self.user.username,
         )
+
+
+class Thread(models.Model):
+    name = models.CharField(max_length=255)
+    users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='threads'
+    )
+    last_message = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return u'%s' % (
+            self.name,
+        )
+
+
+class UnreadThread(models.Model):
+    thread = models.ForeignKey(Thread)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='unread_thread'
+    )
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return u'%s:%s' % (
+            self.thread.name,
+            self.user.username,
+        )
+
+
+class Message(models.Model):
+    thread = models.ForeignKey(Thread, related_name='messages')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    text = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        self.thread.last_message = datetime.datetime.now()
+        self.thread.save()
+        super(Message, self).save(force_insert=False, force_update=False,
+                                  using=None, update_fields=None)
+
+    def __str__(self):
+        return u'%s: %s' % (
+            self.user.username,
+            self.text[:100],
+        )
+
+
+class MessageBinding(WebsocketBinding):
+    model = Message
+    stream = 'messages'
+    fields = ['__all__']
+
+    @classmethod
+    def group_names(cls, instance):
+        return ['thread-%s' % instance.thread.pk]
+
+    def has_permission(self, user, action, pk):
+        return user in self.users

@@ -1,12 +1,20 @@
 from django.conf.urls import url
-from django.contrib import admin
-from django.contrib.auth.views import login, logout
-from socialaxy_site.socialaxy_chat.views import index
-
+from django.conf import settings
+from django.conf.urls.static import static
+from .views import log_in, log_out, sign_up, user_list, thread_view, call_view, profile_view, update_profile
 
 urlpatterns = [
-    url(r'^$', index),
-    url(r'^accounts/login/$', login),
-    url(r'^accounts/logout/$', logout),
-    url(r'^admin/', admin.site.urls),
+    url(r'^login$', log_in, name='login'),
+    url(r'^logout$', log_out, name='logout'),
+    url(r'^signup$', sign_up, name='signup'),
+    url(r'^$', user_list, name='user_list'),
+    url(r'^user/(?P<username>.+)$', profile_view, name='user'),
+    url(r'^chat/(?P<username>.+)$', thread_view, name='chat'),
+    url(r'^thread/(?P<thread_id>.+)$', thread_view, name='thread'),
+    url(r'^call/(?P<username>.+)$', call_view, name='call'),
+    url(r'^update-profile$', update_profile, name='update_profile'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)
