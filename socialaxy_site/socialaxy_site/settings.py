@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     'social_django',
     'widget_tweaks',
 
-    'socialaxy_main_page',
     'socialaxy_chat',
     'socialaxy_coming_soon_page',
 ]
