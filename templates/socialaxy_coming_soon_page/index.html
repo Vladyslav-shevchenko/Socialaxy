@@ -1,0 +1,128 @@
+{% load staticfiles %}
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Socialaxy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Socialaxy - social galaxy, new startup."/>
+    <meta name="keywords" content="socialaxy, social galaxy, social network"/>
+    <meta name="author" content="Shevchenko Vlad"/>
+    <link href="{% static 'socialaxy_coming_soon_page/images/planet32.png' %}" rel="icon"/>
+    <link href='https://fonts.googleapis.com/css?family=Work+Sans:400,300,600,400italic,700' rel='stylesheet'
+          type='text/css'>
+    <link href="https://fonts.googleapis.com/css?family=Amatic+SC" rel="stylesheet">
+
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="{% static 'socialaxy_coming_soon_page/style/animate.css' %}">
+    <!-- Icomoon Icon Fonts-->
+    <link rel="stylesheet" href="{% static 'socialaxy_coming_soon_page/style/icomoon.css' %}">
+    <!-- Bootstrap  -->
+    <link rel="stylesheet" href="{% static 'socialaxy_coming_soon_page/style/bootstrap.css' %}">
+    <!-- Theme style  -->
+    <link rel="stylesheet" href="{% static 'socialaxy_coming_soon_page/style/style.css' %}">
+
+    <!-- Modernizr JS -->
+    <script src="{% static 'socialaxy_coming_soon_page/script/modernizr-2.6.2.min.js' %}"></script>
+
+</head>
+<body>
+
+<div class="loader"></div>
+
+<div id="page">
+    <header id="header" class="cover" role="banner" data-stellar-background-ratio="0.5">
+        <div class="overlay"></div>
+        <div class="trial animate-box">
+            <a href="{% url 'socialaxy_chat:user_list' %}"><i class="icon-arrow-with-circle-right"></i></a>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2 text-center">
+                    <div class="display-t">
+                        <div class="display-tc animate-box" data-animate-effect="fadeIn">
+                            <h1>Socialaxy</h1>
+                            <h2>Made by <a href="https://www.instagram.com/shevchenko__vlad/"
+                                           target="_blank">Shevchenko Vlad</a>
+                            </h2>
+                            <div class="simply-countdown simply-countdown-one"></div>
+                            <div class="row">
+                                <form class="form-inline" id="header-subscribe">
+                                    <div class="col-md-12 col-md-offset-0">
+                                        <div class="form-group">
+                                            <input type="text" class="form-control" id="email"
+                                                   placeholder="Get notify by email">
+                                            <button type="submit" class="btn btn-primary">Send</button>
+                                        </div>
+                                    </div>
+                                </form>
+                                <ul class="social-icons">
+                                    <li><a href="https://www.facebook.com/vlad.shevchenko.562" target="_blank">
+                                        <i class="icon-facebook-with-circle"></i></a></li>
+                                    <li><a href="https://www.linkedin.com/in/shevchenko-vlad" target="_blank">
+                                        <i class="icon-linkedin-with-circle"></i></a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <footer id="footer" role="contentinfo">
+        <div class="container">
+            <div class="row copyright">
+                <div class="col-md-12 text-center">
+                    <p>
+                        <small class="block">&copy; 2017 All Rights Reserved.</small>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </footer>
+</div>
+
+<div class="gototop js-top">
+    <a href="#" class="js-gotop"><i class="icon-arrow-up"></i></a>
+</div>
+
+<!-- jQuery -->
+<script src="{% static 'socialaxy_coming_soon_page/script/jquery.min.js' %}"></script>
+<!-- jQuery Easing -->
+<script src="{% static 'socialaxy_coming_soon_page/script/jquery.easing.1.3.js' %}"></script>
+<!-- Bootstrap -->
+<script src="{% static 'socialaxy_coming_soon_page/script/bootstrap.min.js' %}"></script>
+<!-- Waypoints -->
+<script src="{% static 'socialaxy_coming_soon_page/script/jquery.waypoints.min.js' %}"></script>
+
+<!-- Stellar -->
+<script src="{% static 'socialaxy_coming_soon_page/script/jquery.stellar.min.js' %}"></script>
+
+<!-- Count Down -->
+<script src="{% static 'socialaxy_coming_soon_page/script/simplyCountdown.js' %}"></script>
+<!-- Main -->
+<script src="{% static 'socialaxy_coming_soon_page/script/main.js' %}"></script>
+
+<script>
+    var d = new Date(new Date().getTime() + 800 * 120 * 120 * 2000);
+
+    // default example
+    simplyCountdown('.simply-countdown-one', {
+        year: d.getFullYear(),
+        month: d.getMonth() + 1,
+        day: d.getDate()
+    });
+
+    //jQuery example
+    $('#simply-countdown-losange').simplyCountdown({
+        year: d.getFullYear(),
+        month: d.getMonth() + 1,
+        day: d.getDate(),
+        enableUtc: false
+    });
+</script>
+
+</body>
+</html>
+

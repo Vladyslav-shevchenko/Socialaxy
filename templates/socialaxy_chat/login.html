@@ -1,0 +1,46 @@
+{% extends 'socialaxy_chat/base.html' %}
+{% load static from staticfiles %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block content %}
+    <div class="col-md-8 col-md-offset-2 text-center">
+        <div class="display-t">
+            <div class="planet-bg"></div>
+            <div class="display-tc animate-box" data-animate-effect="fadeIn">
+                <div class="mt-5">
+                    <form action="{% url 'socialaxy_chat:login' %}" method="post" class="">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-warning col-sm-9 offset-sm-3" role="alert">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        {% for field in form %}
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">{{ field.label }}</label>
+                                <div class="col-sm-9">
+                                    {{ field|add_class:"form-control" }}
+                                    {% if field.errors %}
+                                        <div class="alert alert-warning col-sm-9 offset-sm-3" role="alert">
+                                            {{ field.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary float-right">{% trans "Log in" %}</button>
+                    </form>
+
+
+                    <a href="{% url 'social:begin' 'facebook' %}"><i class="icon-facebook-with-circle"></i></a>
+                    <a href="{% url 'social:begin' 'github' %}"><i class="icon-github-with-circle"></i></a>
+                    <a href="{% url 'social:begin' 'twitter' %}"><i class="icon-twitter-with-circle"></i></a>
+                    <p>{% trans "Don't have an account?" %} <a
+                            href="{% url 'socialaxy_chat:signup' %}">{% trans "Sign up!" %}</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
